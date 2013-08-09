@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Music Service</title>
+  <link rel="stylesheet" type="text/css" href="components/select2/select2.css">
+</head>
+<body>
+  <h2>Binary file read</h2>
+  <a href="/music">어반 자카파 - 나비</a>
+
+  <h2>HTML5 Audio</h2>
+  <audio src="/audio/withcoffee.mp3" controls></audio><br/>
+  어반 자카파 - 커피를 마시고3
+
+  <h2>HTML5 Audio List</h2>
+  <div id="songs-list"></div><br/>
+  <audio id="selected-song" src="" controls></audio><br/>
+  <div id="current-song"></div> 
+
+  <script id="audio-list-template" type="text/x-handlebars-template">
+    <select style="width:300px" id="audio-list-source">
+      {{#each audioInfo}}
+      <optgroup label="{{ name }} - {{ artist }}">
+        {{#each songs}}
+        <option value="{{ ../audioSrc }}{{ this }}">{{ this }}</option>
+        {{/each}}
+      </optgroup>
+      {{/each}}
+    </select>
+  </script>
+
+  <script src="components/jquery/jquery.min.js"></script>
+  <script src="components/soundmanager/script/soundmanager2.js"></script>
+  <script src="components/handlebars.js/dist/handlebars.js"></script>
+  <script src="components/select2/select2.js"></script>
+  <script type="text/javascript">
+    var audioInfo = null, count = 0, totalNumber = 0,
+        selectedSong = null;
+
+    var source = $('#audio-list-template').html(),
+        template = Handlebars.compile(source);
+
+    $.ajax({
+      url: '/files',
+      params: {contentType: "application/json;charset=utf-8"}
+    }).done(function (data) {
+      var songsList = [];
+      console.log(data);
+
+      data.forEach(function (album) {
+        album.songs.forEach(function (song) {
+          songsList.push(album.audioSrc + song); 
+        });
+      });
+
+      $('#songs-list').html(template({audioInfo: data}));
+      $('#audio-list-source').select2();
+      $('#audio-list-source').on('change', function (e) {
+        var audioSrc = e.val;
+        console.log(e);
+
+        selectedSong = audioSrc;
+
+        $('#selected-song')[0].src = audioSrc;
+        $('#selected-song')[0].load();
+        $('#selected-song')[0].play();
+
+        $('#current-song').html(audioSrc.slice(10));
+      });
+
+      $('#selected-song').on('ended', function (e) {
+        console.log(e);
+
+        var index = songsList.indexOf(selectedSong) + 1;
+        console.log('index = ', index);
+        selectedSong = songsList[index];
+        $('#selected-song')[0].src = selectedSong;
+        $('#selected-song')[0].load();
+        $('#selected-song')[0].play();
+
+        $('#current-song').html(selectedSong.slice(10));          
+      });
+    });  
+  </script>
+</body>
+</html>

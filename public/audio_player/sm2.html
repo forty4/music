@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HTML5 Audio Test</title>
+</head>
+<body>
+  <h3>Audio</h3>
+<!--   <audio src="audio/withcoffee.mp3" controls></audio><span id="title">커피를 마시고</span><br/>
+ --><!--   <audio src="audio/butterfly.mp3" controls></audio>나비<br/>
+  <audio src="audio/hello.mp3" controls></audio>안부<br/>  -->
+
+  <h3>Result</h3>
+  <div id="result"></div>
+
+  <script src="components/jquery/jquery.min.js"></script>
+  <script src="components/soundmanager/script/soundmanager2.js"></script>
+  <script type="text/javascript">
+    var count = 0, current = 0, prevEvent = null,
+        songs = ['audio/withcoffee.mp3', 'audio/hello.mp3', 'audio/butterfly.mp3', 'audio/ewha.mp3'],
+        titles = ['커피를 마시고', '안부', '나비', '이화동'];
+
+    soundManager.setup({
+      preferFlash: false,
+
+      onready: function () {
+        console.log('SM2 is loaded');
+
+        soundManager.createSound({
+          id: 'withcoffee',
+          url: 'audio/withcoffee.mp3',
+          onfinish: function () {
+            soundManager.createSound({
+              id: 'hello',
+              url: 'audio/hello.mp3'
+            }).play({
+              whileplaying: function() {
+                // demo only: show sound position while playing, for context
+                soundManager._writeDebug('position = ' + this.position);
+              }
+            });
+          }
+        });
+
+        soundManager.play('withcoffee');
+      },
+
+      ontimeout: function () {
+        console.log('SM2 timeout');
+      }
+    });
+
+    // $('audio').on('volumechange timeupdate suspend stalled seeking seeked ratechange progress playing play pause loadstart loadedmetadata loadeddata error ended emptied durationchange canplaythrough canplay abort waiting', function (e) {
+    //   console.dir(e);
+
+    //   if (prevEvent && prevEvent === e.type) {
+    //     $('#result').prepend('.');
+    //   } else {
+    //     $('#result').prepend(e.type + '(' + count++ +'), ');  
+    //   }
+    //   prevEvent = e.type;
+    // });
+
+    // $('audio').on('ended', function (e) {
+    //   current++;
+    //   if (current === 4) { current = 0; }
+    //   $('#result').prepend('====================================================');
+    //   $('audio')[0].src = songs[current];
+    //   $('audio')[0].load();
+    //   $('audio')[0].play();
+    //   $('#title').html(titles[current]); 
+    // });  
+  </script>
+</body>
+</html>

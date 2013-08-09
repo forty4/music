@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HTML5 Audio Test</title>
+  <meta name="viewport" content="user-scalable=0, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="plugin/css/style.css">
+</head>
+<body>
+  <div id="ttw"></div>
+
+  <h3>Audio</h3>
+<!--   <audio src="audio/withcoffee.mp3" controls></audio><span id="title">커피를 마시고</span><br/> -->
+<!--   <audio src="audio/butterfly.mp3" controls></audio>나비<br/>
+  <audio src="audio/hello.mp3" controls></audio>안부<br/>  -->
+
+  <h3>Console</h3>
+  <div id="console"></div>
+
+  <h3>Status</h3>
+  <div id="status"></div>
+
+  <h3>Result</h3>
+  <div id="result"></div>
+
+  <script src="components/jquery/jquery.min.js"></script>
+  <script src="components/jplayer/jquery.jplayer/jquery.jplayer.js"></script>
+  <script src="plugin/ttw-music-player.js"></script>
+<!-- <script src="components/soundmanager/script/soundmanager2.js"></script> -->
+  <script type="text/javascript">
+    var count = 0, current = 0, prevEvent = null, progressCount = 0,
+        songs = ['audio/withcoffee.mp3', 'audio/hello.mp3', 'audio/butterfly.mp3', 'audio/ewha.mp3'],
+        titles = ['커피를 마시고', '안부', '나비', '이화동'];
+
+    var deviceDetection = function () { 
+      var osVersion, 
+          device, 
+          deviceType, 
+          userAgent, 
+          isSmartphoneOrTablet; 
+
+      device = (navigator.userAgent).match(/Android|iPhone|iPad|iPod/i);
+      browser = (navigator.userAgent).match(/Chrome|CriOS/i); 
+
+      if ( /Android/i.test(device) ) { 
+          if ( !/mobile/i.test(navigator.userAgent) ) { 
+              deviceType = 'tablet'; 
+          } else { 
+              deviceType = 'phone'; 
+          } 
+
+          osVersion = (navigator.userAgent).match(/Android\s+([\d\.]+)/i); 
+          osVersion = osVersion[0]; 
+          osVersion = osVersion.replace('Android ', ''); 
+
+      } else if ( /iPhone/i.test(device) ) { 
+          deviceType = 'phone'; 
+          osVersion = (navigator.userAgent).match(/OS\s+([\d\_]+)/i); 
+          osVersion = osVersion[0]; 
+          osVersion = osVersion.replace(/_/g, '.'); 
+          osVersion = osVersion.replace('OS ', ''); 
+
+      } else if ( /iPad/i.test(device) ) { 
+          deviceType = 'tablet'; 
+          osVersion = (navigator.userAgent).match(/OS\s+([\d\_]+)/i); 
+          osVersion = osVersion[0]; 
+          osVersion = osVersion.replace(/_/g, '.'); 
+          osVersion = osVersion.replace('OS ', ''); 
+      } 
+
+      if (/Chrome|CriOS/i.test(browser)) {
+        browser = 'chrome';
+      } else {
+        browser = 'default';
+      }
+
+      isSmartphoneOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent); 
+      userAgent = navigator.userAgent; 
+
+      return { 'isSmartphoneOrTablet': isSmartphoneOrTablet, 
+               'device': device ? device[0] : [], 
+               'osVersion': osVersion,
+               'browser': browser, 
+               'userAgent': userAgent, 
+               'deviceType': deviceType 
+              }; 
+    }();
+
+    var myPlaylist = [{
+      mp3: 'audio/withcoffee.mp3',
+      oga: '',
+      rating: 4.5,
+      title: '커피를 마시고',
+      buy: 'http://www.com',
+      price: '0.99',
+      duration: '4:01',
+      artist: 'Artist Name',
+      cover: 'images/cover.jpg'
+    },
+    {
+      mp3: 'audio/hello.mp3',
+      oga: '',
+      rating: 4.0,
+      title: '안부',
+      buy: 'http://www.com',
+      price: '0.99',
+      duration: '3:28',
+      artist: 'Artist Name',
+      cover: 'images/cover.jpg'      
+    },
+    {
+      mp3:'audio/butterfly.mp3',
+      oga:'',
+      rating:3.5,
+      title:'나비',
+      buy:'http://www.com',
+      price:'0.99',
+      duration:'4:58',
+      artist:'Artist Name',
+      cover:'images/cover.jpg'      
+    },
+    {
+      mp3:'audio/ewha.mp3',
+      oga:'',
+      rating:1.5,
+      title:'이화동',
+      buy:'http://www.com',
+      price:'0.99',
+      duration:'2:28',
+      artist:'Artist Name',
+      cover:'images/cover.jpg'      
+    }
+    ];
+    var options = {
+      currencySymbol:'$',
+      buyText:'BUY',
+      tracksToShow: 5,
+      autoPlay:false,
+      ratingCallback:function(index, playlistItem, rating){
+        console.log('Rating : ', rating);
+        //some logic to process the rating, perhaps through an ajax call
+      },
+      jPlayer:{} //override default jPlayer options. This accepts the same structure as the standalone jPlayer
+    };
+
+    var player = $('#ttw').ttwMusicPlayer(myPlaylist, options); 
+    console.warn('Player - ', player);
+
+    $('#result').prepend('[[[[[' + deviceDetection.device + ' - ' + deviceDetection.browser + ']]]]]');
+
+    $('audio').on('volumechange timeupdate suspend stalled seeking seeked ratechange progress playing play pause loadstart loadedmetadata loadeddata error ended emptied durationchange canplaythrough canplay abort waiting', function (e) {
+      console.debug(e);
+
+      if (prevEvent && prevEvent === e.type) {
+        $('#result').prepend('.');
+      } else {
+        $('#result').prepend(e.type + '(' + count++ +'), ');  
+      }
+
+      if (deviceDetection.device === 'Android' && deviceDetection.browser === 'chrome') {
+        if (e.type === 'progress' && prevEvent === 'progress') {
+          progressCount++;
+          $('#console').html(progressCount);  
+        } else {
+          progressCount = 0;
+        }
+        
+        if (progressCount > 5 && !e.target.paused) {
+          $('audio').trigger('ended');
+          $('audio').trigger($.jPlayer.event.ended);
+        }
+      }
+
+      prevEvent = e.type;
+    });
+
+    $('audio').on('ended', function (e) {
+      // current++;
+      // if (current === 4) { current = 0; }
+      $('#result').prepend('====================================================');
+      // $('audio')[0].src = songs[current];
+      // $('audio')[0].load();
+      
+      // if (deviceDetection.device === 'Android') {
+      //   console.log('Android');
+      //   $('audio').on('loadedmetadata', function (e) {
+      //     $('audio')[0].play();   
+      //   });
+      // } else {
+      //   console.log('Not Android');
+      //   $('audio')[0].play();
+      // }
+
+      // $('#title').html(titles[current]); 
+    }); 
+  </script>
+</body>
+</html>

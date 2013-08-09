@@ -1,0 +1,4 @@
+node_modules
+public/audio_player/audio
+public/components
+bower_components
