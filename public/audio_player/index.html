@@ -114,7 +114,7 @@
     });
 
     $.ajax({
-      url: '/getMusicInfo',
+      url: '/api/getMusicInfo',
       params: {contentType: "application/json;charset=utf-8"}
     }).done(function (data) {
       var songsList = [], selectInfo = data.slice(0);
@@ -148,14 +148,17 @@
         data.forEach(function (album) {
           if (albumInfo[0] === 'all' || (album.name === albumInfo[0] && album.artist === albumInfo[1])) {
             album.songs.forEach(function (song) {
-              playlist.push({
-                mp3: album.audioSrc + song,
+              var item = {
                 rating: 4.0,
                 title: song,
                 duration: '4:00',
                 artist: album.artist,
                 cover: album.cover ? 'images/' + album.cover : 'images/cover.jpg'
-              }); 
+              };
+
+              item[album.format] = album.audioSrc + '/' + song;
+
+              playlist.push(item); 
             });
           }
         });      

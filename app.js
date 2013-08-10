@@ -30,7 +30,7 @@ if ('development' == app.get('env')) {
 
 app.get('/', routes.index);
 app.get('/music', routes.music);
-app.get('/getMusicInfo', routes.getMusicInfo);
+app.get('/api/getMusicInfo', routes.getMusicInfo);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

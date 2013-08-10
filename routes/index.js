@@ -4,46 +4,50 @@
  */
 var fs = require('fs'),
     path = require('path'),
+    audioInfo = require('../audioinfo'),
     albums = require('../albums').albums;
 
-console.dir(albums);
+console.log(audioInfo.getAudioInfo());
 
 exports.index = function(req, res){
   res.render('index', { title: 'Express' });
 };
 
 exports.getMusicInfo = function(req, res){
-  var audioInfo = [];
+  // var audioInfo = [];
 
-  albums.forEach(function (album) {
-    var songs = [];
+  // var rootDirctory = 'public/audio_player/audio/Music/',
+  //     rootAudioSrc = 'audio/Music';
 
-    fs.readdir(album.directory, function (err, files) {
-      var fileName = null;
+  // albums.forEach(function (album) {
+  //   var songs = [];
 
-      if (err) {
-          throw err;
-      }
+  //   fs.readdir(album.directory, function (err, files) {
+  //     var fileName = null;
 
-      files.map(function (file) {
-        return file;
-      }).filter(function (file) {
-        var fullPath = path.join(album.directory, file);
-        return fs.statSync(fullPath).isFile();
-      }).forEach(function (file) {
-        console.log("%s (%s)", file, path.extname(file));
-        songs.push(file);
-      });
-    });
+  //     if (err) {
+  //         throw err;
+  //     }
 
-    album.songs = songs;
-    audioInfo.push(album);    
-  });
+  //     files.map(function (file) {
+  //       return file;
+  //     }).filter(function (file) {
+  //       var fullPath = path.join(album.directory, file);
+  //       return fs.statSync(fullPath).isFile();
+  //     }).forEach(function (file) {
+  //       console.log("%s (%s)", file, path.extname(file));
+  //       songs.push(file);
+  //     });
+  //   });
 
-  setTimeout(function () {
-    res.json(audioInfo);
+  //   album.songs = songs;
+  //   audioInfo.push(album);    
+  // });
+
+  // setTimeout(function () {
+    res.json(audioInfo.getAudioInfo());
     res.end();
-  }, 1000);
+  // }, 1000);
 };
 
 exports.music = function(req, res){

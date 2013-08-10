@@ -97,7 +97,7 @@
 
                 jPlayerDefaults = {
                     swfPath: "jquery-jplayer",
-                    supplied: "mp3, oga",
+                    supplied: "mp3, oga, m4a",
                     solution:'html, flash',
                     cssSelectorAncestor:  cssSelector.jPlayerInterface,
                     errorAlerts: false,
@@ -486,6 +486,8 @@
                 return myPlaylist[index].title;
             else if (!isUndefined(myPlaylist[index].mp3))
                 return fileName(myPlaylist[index].mp3);
+            else if (!isUndefined(myPlaylist[index].m4a))
+                return fileName(myPlaylist[index].m4a);
             else if (!isUndefined(myPlaylist[index].oga))
                 return fileName(myPlaylist[index].oga);
             else return '';

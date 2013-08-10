@@ -83,9 +83,23 @@
     font-size: 12px;
 }
 
+@media (min-width: 420px) {
+    .ttw-music-player .track-info {
+        width: 215px;
+        margin: 8px 0 0 30px;
+    }
+}
+
 @media (min-width: 387px) {
     .ttw-music-player .track-info {
-        width: 215;
+        width: 180px;
+        margin: 8px 0 0 30px;
+    }
+}
+
+@media (min-width: 360px) {
+    .ttw-music-player .track-info {
+        width: 165px;
         margin: 8px 0 0 30px;
     }
 }
