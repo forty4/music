@@ -8,7 +8,14 @@
 </head>
 <body>
   <div id="album-list" style="text-align: center;"></div>
+  <br/>
   <div id="ttw"></div>
+
+  <h3>Console</h3>
+  <div id="console"></div>
+
+  <h3>Result</h3>
+  <div id="result"></div>
 
   <script id="audio-list-template" type="text/x-handlebars-template">
     <select style="width:300px" id="audio-list-source">
@@ -36,7 +43,7 @@
   <script src="../components/handlebars.js/dist/handlebars.js"></script>
   <script src="../components/select2/select2.js"></script>
   <script type="text/javascript">
-    var audioInfo = null, prevEvent = '', progressCount = 0;
+    var audioInfo = null, prevEvent = '', progressCount = 0, count = 0, data = null, dataTime = null, currentTime = null;
 
     var source = $('#album-list-template').html(),
         template = Handlebars.compile(source);
@@ -95,42 +102,20 @@
               }; 
     }();
 
-    $('audio').on('volumechange timeupdate suspend stalled seeking seeked ratechange progress playing play pause loadstart loadedmetadata loadeddata error ended emptied durationchange canplaythrough canplay abort waiting', function (e) {
-      if (deviceDetection.device === 'Android' && deviceDetection.browser === 'chrome') {
-        if (e.type === 'progress' && prevEvent === 'progress') {
-          progressCount++;
-          $('#console').html(progressCount);  
-        } else {
-          progressCount = 0;
-        }
-        
-        if (progressCount > 5 && !e.target.paused) {
-          $('audio').trigger('ended');
-          $('audio').trigger($.jPlayer.event.ended);
-        }
-      }
+    var options = {
+      currencySymbol:'$',
+      buyText:'BUY',
+      tracksToShow: 15,
+      autoPlay:false,
+      ratingCallback:function(index, playlistItem, rating){
+        console.log('Rating : ', rating);
+        //some logic to process the rating, perhaps through an ajax call
+      },
+      jPlayer:{} //override default jPlayer options. This accepts the same structure as the standalone jPlayer
+    };
 
-      prevEvent = e.type;
-    });
-
-    $.ajax({
-      url: '/api/getMusicInfo',
-      params: {contentType: "application/json;charset=utf-8"}
-    }).done(function (data) {
-      var songsList = [], selectInfo = data.slice(0);
-      console.log(data);
-
-      var options = {
-        currencySymbol:'$',
-        buyText:'BUY',
-        tracksToShow: 15,
-        autoPlay:false,
-        ratingCallback:function(index, playlistItem, rating){
-          console.log('Rating : ', rating);
-          //some logic to process the rating, perhaps through an ajax call
-        },
-        jPlayer:{} //override default jPlayer options. This accepts the same structure as the standalone jPlayer
-      };
+    function loadAudioInfo(data) {
+      var selectInfo = data.slice(0);
 
       selectInfo.unshift({
         name: 'all',
@@ -140,11 +125,18 @@
       $('#album-list').html(template({audioInfo: selectInfo}));
       $('#album-list-source').select2();
 
-      $('#album-list-source').on('change', function (e) {
-        var albumInfo = e.val.split('//'),
+      $('#album-list-source').on('change', function (e, select) {
+        var selected = select || e,
+            albumInfo = selected ? selected.val.split('//') : null,
             playlist = [];
 
-        console.log(e);
+        if (selected) {
+          localStorage.setItem('selectEvent', JSON.stringify({val: selected.val}));
+          console.log('saved to load the previous selection - ', selected);  
+        }        
+
+        console.log(albumInfo);
+
         data.forEach(function (album) {
           if (albumInfo[0] === 'all' || (album.name === albumInfo[0] && album.artist === albumInfo[1])) {
             album.songs.forEach(function (song) {
@@ -165,9 +157,71 @@
 
         $('#ttw').html('');
         $('#ttw').ttwMusicPlayer(playlist, options);
-        
+
+        if ($('audio')) {
+          $('audio').on('volumechange timeupdate suspend stalled seeking seeked ratechange progress playing play pause loadstart loadedmetadata loadeddata error ended emptied durationchange canplaythrough canplay abort waiting', function (e) {
+            if (deviceDetection.device === 'Android' && deviceDetection.browser === 'chrome') {
+              if (e.type === 'progress' && prevEvent === 'progress') {
+                progressCount++;
+                $('#console').html(progressCount);  
+              } else {
+                progressCount = 0;
+              }
+              
+              if (progressCount > 5 && !e.target.paused) {
+                $('audio').trigger('ended');
+                $('audio').trigger($.jPlayer.event.ended);
+              }
+            }
+
+            if (prevEvent && prevEvent === e.type) {
+              $('#result').prepend('.');
+            } else {
+              $('#result').prepend(e.type + '(' + count++ +'), ');  
+            }
+
+            prevEvent = e.type;
+          });
+
+          $('audio').on('ended', function (e) {
+            $('#result').prepend('==================================================================');
+          });
+
+          $('#console').prepend('audio events are binded....');
+        }
       });
-    });  
+
+      var savedEvent = JSON.parse(localStorage.getItem('selectEvent'));
+      if (savedEvent) {
+        $('#album-list-source').trigger('change', savedEvent);
+        console.log('selected from previous selection - ', savedEvent);
+      }
+    }
+
+    $('#result').prepend('[[[[[' + deviceDetection.device + ' - ' + deviceDetection.browser + ']]]]]');
+
+    data = JSON.parse(localStorage.getItem('data'));
+    dataTime = Number(localStorage.getItem('dataTime'), 10);
+    currentTime = Date.now();
+
+    if (data === null || dataTime === null || (dataTime < (currentTime - 60*60*1000))) {
+      $.ajax({
+        url: '/api/getMusicInfo',
+        params: {contentType: "application/json;charset=utf-8"}
+      }).done(function (result) {
+        data = result;
+        dataTime = Date.now();
+        console.log('from server - ', data);
+        localStorage.setItem('data', JSON.stringify(data));
+        localStorage.setItem('dataTime', dataTime);
+        loadAudioInfo(data);
+      });
+    } else {
+      console.log('from localStorage - ', data);
+      loadAudioInfo(data);
+    }
+
+
   </script>
 </body>
 </html>
