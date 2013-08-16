@@ -1,6 +1,7 @@
 var fs = require('fs'),
     path = require('path'),
-    util = require('util');
+    util = require('util'),
+    _ = require('lodash');
 
 var getAudioInfo = exports.getAudioInfo = function () {
   var artistDirectory = 'public/audio_player/audio/Music/',
@@ -35,9 +36,13 @@ var getAudioInfo = exports.getAudioInfo = function () {
     });  
   });
 
-  console.log(audioInfo);
+  var result = _.sortBy(audioInfo, function (record) {
+    return record.artist + record.name;
+  });
 
-  return audioInfo;
+  console.log(result);
+
+  return result;
 }
 
 //getAudioInfo();
